@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ "${XDG_SESSION_TYPE:-}" == "wayland" ]]; then
+	if [[ "${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] && command -v busctl >/dev/null 2>&1; then
+		# Mutter: 1 = standby. This normally wakes on keyboard or pointer input.
+		busctl --user set-property \
+			org.gnome.Mutter.DisplayConfig \
+			/org/gnome/Mutter/DisplayConfig \
+			org.gnome.Mutter.DisplayConfig PowerSaveMode i 1
+	else
+		echo "Unsupported Wayland desktop or missing busctl" >&2
+		exit 1
+	fi
+elif [[ "${XDG_SESSION_TYPE:-}" == "x11" ]]; then
+	command -v xset >/dev/null 2>&1 || {
+		echo "xset is required for X11" >&2
+		exit 1
+	}
+	xset dpms force off
+else
+	echo "Unknown session type: ${XDG_SESSION_TYPE:-unset}" >&2
+	exit 1
+fi
