@@ -2,6 +2,21 @@
 
 set -euo pipefail
 
+version="0.1.0"
+
+case "${1:-}" in
+	-v|--version)
+		printf '%s %s\n' "$(basename "$0")" "$version"
+		exit 0
+		;;
+	"")
+		;;
+	*)
+		echo "Usage: $(basename "$0") [--version]" >&2
+		exit 2
+		;;
+esac
+
 if ! command -v gnome-session-inhibit >/dev/null 2>&1; then
 	echo "gnome-session-inhibit is required" >&2
 	exit 1

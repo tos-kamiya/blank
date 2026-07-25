@@ -2,6 +2,21 @@
 
 set -euo pipefail
 
+version="0.1.0"
+
+case "${1:-}" in
+	-v|--version)
+		printf '%s %s\n' "$(basename "$0")" "$version"
+		exit 0
+		;;
+	"")
+		;;
+	*)
+		echo "Usage: $(basename "$0") [--version]" >&2
+		exit 2
+		;;
+esac
+
 if [[ "${XDG_SESSION_TYPE:-}" == "wayland" ]]; then
 	if [[ "${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] && command -v busctl >/dev/null 2>&1; then
 		# Mutter: 1 = standby. This normally wakes on keyboard or pointer input.

@@ -24,6 +24,13 @@ Temporarily inhibit automatic screen blanking. Use this while watching a video, 
 
 `awake` is effective only while it is running. Press `Ctrl+C` to stop it. While active, it prints the elapsed time since startup to standard error.
 
+Display the version:
+
+```bash
+./blank --version
+./awake --version
+```
+
 For the Japanese documentation, see [README_ja-JP.md](README_ja-JP.md).
 
 ## License
