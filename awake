@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v gnome-session-inhibit >/dev/null 2>&1; then
+	echo "gnome-session-inhibit is required" >&2
+	exit 1
+fi
+
+gnome-session-inhibit \
+	--inhibit idle \
+	--reason "Keeping the screen awake" \
+	--inhibit-only >/dev/null 2>&1 &
+inhibitor_pid=$!
+
+cleanup() {
+	printf '\n' >&2
+	kill "$inhibitor_pid" 2>/dev/null || true
+	wait "$inhibitor_pid" 2>/dev/null || true
+}
+
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+render_status() {
+	local total_seconds=$SECONDS
+	local hours=$((total_seconds / 3600))
+	local minutes=$(((total_seconds % 3600) / 60))
+	local seconds=$((total_seconds % 60))
+	local timestamp
+	local dots=""
+	local dot_count
+	local i
+	timestamp=$(date '+%F %T')
+
+	if (( total_seconds < 60 )); then
+		printf '\033[2K\r%s awake: active for %02dh %02dm %02ds' \
+			"$timestamp" "$hours" "$minutes" "$seconds" >&2
+	else
+		dot_count=$(( (total_seconds / 10) % 6 ))
+		for ((i = 0; i < dot_count; i++)); do
+			dots+='.'
+		done
+		printf '\033[2K\r%s awake: active for %02dh %02dm %s' \
+			"$timestamp" "$hours" "$minutes" "$dots" >&2
+	fi
+}
+
+echo "Press Ctrl+C to stop awake." >&2
+render_status
+while kill -0 "$inhibitor_pid" 2>/dev/null; do
+	if (( SECONDS < 60 )); then
+		sleep 1
+	else
+		sleep 10
+	fi
+	render_status
+done
+
+echo "awake: inhibitor process exited" >&2
+exit 1
